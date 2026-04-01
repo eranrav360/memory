@@ -353,7 +353,7 @@ body::before {
     <div class="overlay-sub">תוצאות ביניים:</div>
     <div class="podium" id="roundPodium"></div>
     <div class="overlay-btns">
-      <button class="ov-btn primary" onclick="emitNextRound()">הסיבוב הבא ▶</button>
+      <button class="ov-btn primary" onclick="emitNextRound()">סיבוב הבא ▶</button>
       <button class="ov-btn secondary" onclick="leaveGame()">← עזוב</button>
     </div>
   </div>
@@ -619,7 +619,7 @@ function buildCreateScreen() {
   [1, 3, 5, 7].forEach(r => {
     const b = document.createElement('button');
     b.className = 'opt-btn' + (cfg.totalRounds === r ? ' active-gold' : '');
-    b.innerHTML = `${r}<small>סיבוב${r > 1 ? 'ות' : ''}</small>`;
+    b.innerHTML = `${r}<small>סיבוב${r > 1 ? 'ים' : ''}</small>`;
     b.onclick = () => { cfg.totalRounds = r; buildCreateScreen(); };
     rr.appendChild(b);
   });
