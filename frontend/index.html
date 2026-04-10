@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>זיכרון אונליין</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="זיכרון">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d0d1a">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Heebo:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -107,9 +112,9 @@ body::before {
 .topic-card .t-name { font-size:12px; font-weight:600; color:var(--text); text-align:center; }
 
 /* Option rows */
-.opt-row { display:flex; gap:8px; width:100%; margin-bottom:20px; }
+.opt-row { display:flex; flex-wrap:wrap; gap:8px; width:100%; margin-bottom:20px; }
 .opt-btn {
-  flex:1; background:var(--surface); border:1.5px solid var(--border); border-radius:12px;
+  flex:1; min-width:52px; background:var(--surface); border:1.5px solid var(--border); border-radius:12px;
   padding:9px 4px; color:var(--muted); font-family:'Fredoka One',cursive; font-size:18px;
   cursor:pointer; transition:all 0.2s; text-align:center;
 }
@@ -169,6 +174,7 @@ body::before {
 .card-grid.g4 { grid-template-columns:repeat(4,1fr); }
 .card-grid.g5 { grid-template-columns:repeat(5,1fr); }
 .card-grid.g6 { grid-template-columns:repeat(6,1fr); }
+.card-grid.g8 { grid-template-columns:repeat(8,1fr); gap:5px; }
 
 .card { aspect-ratio:1; perspective:600px; cursor:pointer; }
 .card.not-my-turn { cursor:default; }
@@ -385,7 +391,7 @@ body::before {
 // ─────────────────────────────────────────────────────────────────────────────
 const BACKEND_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:3002'
-  : 'https://memory-h3ts.onrender.com'; // TODO: replace after Render deploy
+  : 'https://memory-h3ts.onrender.com';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GAME DATA
@@ -395,31 +401,37 @@ const TOPICS = [
     {e:'🐶',l:'כלב'},{e:'🐱',l:'חתול'},{e:'🐘',l:'פיל'},{e:'🦁',l:'אריה'},
     {e:'🐸',l:'צפרדע'},{e:'🦊',l:'שועל'},{e:'🐼',l:'פנדה'},{e:'🐧',l:'פינגווין'},
     {e:'🦋',l:'פרפר'},{e:'🦜',l:'תוכי'},{e:'🐢',l:'צב'},{e:'🦓',l:'זברה'},
+    {e:'🦒',l:"ג'ירפה"},{e:'🐊',l:'תנין'},{e:'🦈',l:'כריש'},{e:'🦅',l:'נשר'},
   ]},
   { id:'food', name:'אוכל', icon:'🍕', pairs:[
     {e:'🍕',l:'פיצה'},{e:'🍔',l:'המבורגר'},{e:'🍣',l:'סושי'},{e:'🍦',l:'גלידה'},
     {e:'🥑',l:'אבוקדו'},{e:'🍩',l:'דונאט'},{e:'🌮',l:'טאקו'},{e:'🍜',l:'אטריות'},
     {e:'🍓',l:'תות'},{e:'🥐',l:'קרואסון'},{e:'🍇',l:'ענבים'},{e:'🥝',l:'קיווי'},
+    {e:'🍰',l:'עוגה'},{e:'🌽',l:'תירס'},{e:'🥕',l:'גזר'},{e:'🍒',l:'דובדבן'},
   ]},
   { id:'sports', name:'ספורט', icon:'⚽', pairs:[
     {e:'⚽',l:'כדורגל'},{e:'🏀',l:'כדורסל'},{e:'🎾',l:'טניס'},{e:'🏊',l:'שחייה'},
     {e:'🚴',l:'אופניים'},{e:'🏋️',l:'משקולות'},{e:'🤸',l:'התעמלות'},{e:'🎿',l:'סקי'},
     {e:'🏄',l:'גלישה'},{e:'🥊',l:'איגרוף'},{e:'⛳',l:'גולף'},{e:'🏇',l:'רכיבה'},
+    {e:'🏓',l:'פינג פונג'},{e:'🤺',l:'סיף'},{e:'🏹',l:'קשת'},{e:'🛹',l:'סקייטבורד'},
   ]},
   { id:'space', name:'חלל', icon:'🚀', pairs:[
     {e:'🚀',l:'טיל'},{e:'🌙',l:'ירח'},{e:'⭐',l:'כוכב'},{e:'🪐',l:'שבתאי'},
     {e:'☄️',l:'שביט'},{e:'🌍',l:'כדור הארץ'},{e:'🛸',l:'צלחת מעופפת'},{e:'👨‍🚀',l:'אסטרונאוט'},
     {e:'🌌',l:'גלקסיה'},{e:'🔭',l:'טלסקופ'},{e:'💫',l:'נצנוץ'},{e:'🌠',l:'כוכב נופל'},
+    {e:'🌞',l:'שמש'},{e:'🪨',l:'אסטרואיד'},{e:'🛰️',l:'לוויין'},{e:'🌑',l:'ירח חדש'},
   ]},
   { id:'music', name:'מוזיקה', icon:'🎵', pairs:[
     {e:'🎸',l:'גיטרה'},{e:'🎹',l:'פסנתר'},{e:'🥁',l:'תופים'},{e:'🎺',l:'חצוצרה'},
     {e:'🎻',l:'כינור'},{e:'🎤',l:'מיקרופון'},{e:'🎧',l:'אוזניות'},{e:'🎼',l:'תווים'},
     {e:'🪗',l:'אקורדיון'},{e:'🎷',l:'סקסופון'},{e:"🪕",l:"בנג'ו"},{e:'🔔',l:'פעמון'},
+    {e:'🎙️',l:'מיקרופון'},{e:'📻',l:'רדיו'},{e:'🪘',l:'תוף'},{e:'🎚️',l:'מיקסר'},
   ]},
   { id:'nature', name:'טבע', icon:'🌿', pairs:[
     {e:'🌸',l:'פרח'},{e:'🌊',l:'גל'},{e:'⛰️',l:'הר'},{e:'🌈',l:'קשת'},
     {e:'🌪️',l:'סופה'},{e:'🌻',l:'חמנייה'},{e:'🍄',l:'פטרייה'},{e:'🌵',l:'קקטוס'},
     {e:'🌴',l:'דקל'},{e:'❄️',l:'שלג'},{e:'🍁',l:'עלה'},{e:'🌿',l:'צמח'},
+    {e:'🌋',l:'הר געש'},{e:'🏝️',l:'אי'},{e:'🌾',l:'חיטה'},{e:'🐚',l:'צדף'},
   ]},
 ];
 
@@ -605,7 +617,7 @@ function buildCreateScreen() {
   // Pairs
   const pr = document.getElementById('createPairsRow');
   pr.innerHTML = '';
-  [4, 6, 8, 10, 12].forEach(p => {
+  [4, 6, 8, 10, 12, 16].forEach(p => {
     const b = document.createElement('button');
     b.className = 'opt-btn' + (cfg.numPairs === p ? ' active-blue' : '');
     b.innerHTML = `${p * 2}<small>קלפים</small>`;
@@ -698,7 +710,7 @@ function initBoard(serverCards) {
   matchedPairIds.clear();
 
   const topic = TOPICS.find(t => t.id === settings.topicId);
-  const cols = settings.numPairs <= 8 ? 'g4' : settings.numPairs === 10 ? 'g5' : 'g6';
+  const cols = settings.numPairs <= 8 ? 'g4' : settings.numPairs === 10 ? 'g5' : settings.numPairs <= 12 ? 'g6' : 'g8';
   const grid = document.getElementById('cardGrid');
   grid.className = 'card-grid ' + cols;
   grid.innerHTML = '';
@@ -823,8 +835,72 @@ function showToast(msg) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PWA — home screen icon + manifest
+// ─────────────────────────────────────────────────────────────────────────────
+function setupPWA() {
+  // Draw icon on canvas
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#0d0d1a';
+  ctx.fillRect(0, 0, size, size);
+
+  // Rounded card background
+  ctx.fillStyle = '#1e0d3e';
+  ctx.beginPath();
+  const r = 96;
+  ctx.moveTo(48 + r, 48);
+  ctx.lineTo(size - 48 - r, 48);
+  ctx.quadraticCurveTo(size - 48, 48, size - 48, 48 + r);
+  ctx.lineTo(size - 48, size - 48 - r);
+  ctx.quadraticCurveTo(size - 48, size - 48, size - 48 - r, size - 48);
+  ctx.lineTo(48 + r, size - 48);
+  ctx.quadraticCurveTo(48, size - 48, 48, size - 48 - r);
+  ctx.lineTo(48, 48 + r);
+  ctx.quadraticCurveTo(48, 48, 48 + r, 48);
+  ctx.closePath();
+  ctx.fill();
+
+  // Brain emoji
+  ctx.font = '300px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🧠', size / 2, size / 2 + 10);
+
+  const iconUrl = canvas.toDataURL('image/png');
+
+  // Apple touch icon
+  const appleLink = document.createElement('link');
+  appleLink.rel = 'apple-touch-icon';
+  appleLink.href = iconUrl;
+  document.head.appendChild(appleLink);
+
+  // Web app manifest (blob URL so icons data URI works)
+  const manifest = {
+    name: 'זיכרון אונליין',
+    short_name: 'זיכרון',
+    start_url: './',
+    display: 'standalone',
+    background_color: '#0d0d1a',
+    theme_color: '#c77dff',
+    dir: 'rtl',
+    lang: 'he',
+    icons: [{ src: iconUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }],
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  const manifestLink = document.createElement('link');
+  manifestLink.rel = 'manifest';
+  manifestLink.href = URL.createObjectURL(blob);
+  document.head.appendChild(manifestLink);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────────────────────────────────────
+setupPWA();
 buildCreateScreen();
 
 // Show create screen when navigating to it

@@ -15,7 +15,7 @@ const io = new Server(httpServer, { cors: { origin: '*' } });
 const rooms = new Map();
 
 const PLAYER_COLORS = ['#ff6b6b', '#48d9ff', '#ffd166', '#a8ff78'];
-const PAIRS_PER_TOPIC = 12;
+const PAIRS_PER_TOPIC = 16;
 
 function genCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
