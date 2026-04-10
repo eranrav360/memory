@@ -380,6 +380,7 @@ body::before {
 
 <div class="toast" id="toast"></div>
 <div class="conn-badge" id="connBadge">
+  <button id="muteBtn" onclick="toggleMute()" style="background:none;border:none;cursor:pointer;font-size:15px;padding:0;line-height:1;" title="השתק/הפעל צלילים">🔊</button>
   <div class="conn-dot" id="connDot"></div>
   <span id="connText">מתחבר...</span>
 </div>
@@ -535,6 +536,7 @@ function initSocket() {
     flippedIds.add(cardId);
     const el = document.getElementById('card-' + cardId);
     if (el) el.classList.add('flipped');
+    snd.flip();
   });
 
   socket.on('pairMatched', ({ cardIds, pairId, matchedBy, players: pl }) => {
@@ -548,6 +550,7 @@ function initSocket() {
     updateScoreBar();
     updateMatchCount();
     showToast('✨ התאמה! +1 ל' + players[matchedBy].name);
+    snd.match();
   });
 
   socket.on('pairMissed', ({ cardIds, nextPlayer }) => {
@@ -564,6 +567,7 @@ function initSocket() {
     updateTurnBanner();
     updateCardClickability();
     if (players[nextPlayer]) showToast('תורו של ' + players[nextPlayer].name);
+    snd.miss();
   });
 
   socket.on('roundEnded', ({ round: r, players: pl }) => {
@@ -571,6 +575,7 @@ function initSocket() {
     document.getElementById('roundEndTitle').textContent = 'סיבוב ' + r + ' נגמר! 🎊';
     buildPodium('roundPodium');
     document.getElementById('roundEndOverlay').classList.add('show');
+    snd.roundWin();
   });
 
   socket.on('gameEnded', ({ players: pl }) => {
@@ -582,6 +587,7 @@ function initSocket() {
       winners.length === 1 ? '🏆 ' + winners[0].name + ' ניצח!' : '🤝 תיקו!';
     document.getElementById('gameEndSub').textContent = totalRounds + ' סיבובים הושלמו';
     buildPodium('gamePodium');
+    snd.win();
     document.getElementById('gameEndOverlay').classList.add('show');
   });
 }
@@ -833,6 +839,66 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SOUND — Web Audio API, no external files
+// ─────────────────────────────────────────────────────────────────────────────
+let _ac = null;
+let muted = false;
+
+function ac() {
+  if (!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)();
+  if (_ac.state === 'suspended') _ac.resume();
+  return _ac;
+}
+
+function toggleMute() {
+  muted = !muted;
+  document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+}
+
+function tone(freq, type, startVol, dur, startTime, ctx) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(startVol, startTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + dur);
+  osc.start(startTime);
+  osc.stop(startTime + dur);
+}
+
+const snd = {
+  flip() {
+    if (muted) return;
+    const ctx = ac(), t = ctx.currentTime;
+    tone(900, 'sine', 0.18, 0.08, t, ctx);
+    tone(600, 'sine', 0.10, 0.06, t + 0.04, ctx);
+  },
+  match() {
+    if (muted) return;
+    const ctx = ac(), t = ctx.currentTime;
+    [523, 659, 784].forEach((f, i) => tone(f, 'sine', 0.35, 0.22, t + i * 0.11, ctx));
+  },
+  miss() {
+    if (muted) return;
+    const ctx = ac(), t = ctx.currentTime;
+    tone(220, 'sawtooth', 0.18, 0.18, t, ctx);
+    tone(180, 'sawtooth', 0.12, 0.15, t + 0.07, ctx);
+  },
+  roundWin() {
+    if (muted) return;
+    const ctx = ac(), t = ctx.currentTime;
+    [523, 659, 784, 659, 784].forEach((f, i) => tone(f, 'sine', 0.3, 0.2, t + i * 0.1, ctx));
+  },
+  win() {
+    if (muted) return;
+    const ctx = ac(), t = ctx.currentTime;
+    [523, 659, 784, 1047, 1047].forEach((f, i) => tone(f, 'sine', 0.4, 0.35, t + i * 0.13, ctx));
+  },
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA — home screen icon + manifest
