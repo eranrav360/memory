@@ -16,6 +16,14 @@ const rooms = new Map();
 
 const PLAYER_COLORS = ['#ff6b6b', '#48d9ff', '#ffd166', '#a8ff78'];
 const PAIRS_PER_TOPIC = 16;
+const TOPIC_IDS = ['animals', 'food', 'sports', 'space', 'music', 'nature'];
+
+function pickTopicId(settings) {
+  if (settings.topicId === 'random') {
+    return TOPIC_IDS[Math.floor(Math.random() * TOPIC_IDS.length)];
+  }
+  return settings.topicId;
+}
 
 function genCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -106,6 +114,7 @@ io.on('connection', socket => {
   function beginGame(room, resetScores = true) {
     room.phase = 'playing';
     if (resetScores) room.players.forEach(p => { p.score = 0; });
+    const topicId = pickTopicId(room.settings);
     const cards = buildCards(room.settings.numPairs);
     room.gs = {
       cards,
@@ -114,10 +123,12 @@ io.on('connection', socket => {
       locked: false,
       currentPlayer: 0,
       round: 1,
+      topicId,
     };
     io.to(room.code).emit('gameStarted', {
       cards: cards.map(publicCard),
       settings: room.settings,
+      topicId,
       players: room.players,
       currentPlayer: 0,
       round: 1,
@@ -209,10 +220,13 @@ io.on('connection', socket => {
     gs.flipped = [];
     gs.matched = [];
     gs.locked = false;
+    const topicId = pickTopicId(room.settings);
+    gs.topicId = topicId;
     gs.cards = buildCards(room.settings.numPairs);
 
     io.to(room.code).emit('roundStarted', {
       cards: gs.cards.map(publicCard),
+      topicId,
       currentPlayer: gs.currentPlayer,
       players: room.players,
       round: gs.round,
