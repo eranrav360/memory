@@ -47,6 +47,11 @@ body::before {
 .screen { display:none; flex-direction:column; align-items:center; width:100%; max-width:460px; padding:20px 16px; position:relative; z-index:1; min-height:100dvh; }
 .screen.active { display:flex; }
 
+/* Game screen overrides — fill the full viewport */
+#screen-game { max-width:100%; padding:8px; height:100dvh; min-height:unset; overflow:hidden; justify-content:flex-start; }
+#screen-game .grid-wrap { flex:1; min-height:0; align-items:center; justify-content:center; }
+#screen-game .card-grid { width:fit-content; margin:auto; }
+
 .big-title {
   font-family:'Fredoka One',cursive;
   font-size:clamp(36px,10vw,52px);
@@ -192,6 +197,10 @@ body::before {
 .card-back-pattern { width:55%; height:55%; border:2px solid rgba(199,125,255,0.2); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:clamp(14px,4vw,18px); opacity:0.35; }
 .card-front { background:#fff; border:1.5px solid rgba(255,255,255,0.3); font-size:clamp(20px,6vw,30px); transform:rotateY(180deg); flex-direction:column; gap:1px; }
 .card-front .card-label { font-size:clamp(8px,2.2vw,11px); font-weight:700; color:#333; text-align:center; padding:0 3px; line-height:1.1; }
+/* Scale card content when --card-size is set by JS */
+.card-grid[style*="--card-size"] .card-front { font-size:calc(var(--card-size) * 0.38); }
+.card-grid[style*="--card-size"] .card-front .card-label { font-size:calc(var(--card-size) * 0.14); }
+.card-grid[style*="--card-size"] .card-back-pattern { font-size:calc(var(--card-size) * 0.22); }
 .card.matched .card-front { background:linear-gradient(135deg,#e8fff0,#c8f7d8); border-color:#48c88a; }
 .card.matched .card-inner { box-shadow:0 0 12px rgba(72,200,138,0.5); }
 .card.wrong .card-inner { animation:shake 0.4s ease; }
@@ -745,9 +754,10 @@ function initBoard(serverCards) {
   matchedPairIds.clear();
 
   const topic = TOPICS.find(t => t.id === currentTopicId);
-  const cols = settings.numPairs <= 8 ? 'g4' : settings.numPairs === 10 ? 'g5' : settings.numPairs <= 12 ? 'g6' : 'g8';
+  const numCols = settings.numPairs <= 8 ? 4 : settings.numPairs === 10 ? 5 : settings.numPairs <= 12 ? 6 : 8;
+  const numRows = Math.ceil(settings.numPairs * 2 / numCols);
   const grid = document.getElementById('cardGrid');
-  grid.className = 'card-grid ' + cols;
+  grid.className = 'card-grid';
   grid.innerHTML = '';
 
   cards.forEach(c => {
@@ -769,6 +779,23 @@ function initBoard(serverCards) {
   updateTurnBanner();
   updateCardClickability();
   updateMatchCount();
+
+  // After layout is painted, compute the largest square card that fills the wrap
+  requestAnimationFrame(() => {
+    const wrap = document.querySelector('#screen-game .grid-wrap');
+    if (!wrap) return;
+    const gap = 6;
+    const w = wrap.clientWidth  - 4;
+    const h = wrap.clientHeight - 4;
+    const byW = (w - gap * (numCols - 1)) / numCols;
+    const byH = (h - gap * (numRows - 1)) / numRows;
+    const size = Math.floor(Math.min(byW, byH));
+    grid.style.gridTemplateColumns = `repeat(${numCols}, ${size}px)`;
+    grid.style.gridTemplateRows    = `repeat(${numRows}, ${size}px)`;
+    grid.style.gap = gap + 'px';
+    // Scale emoji/label font proportionally
+    grid.style.setProperty('--card-size', size + 'px');
+  });
 }
 
 function onCardClick(cardId) {
